@@ -1,7 +1,7 @@
 import std/math
 import ../src/nimpulseq
 
-proc main() =
+proc writeEpiLabelSeq*(): Sequence =
   # ======
   # SETUP
   # ======
@@ -129,8 +129,10 @@ proc main() =
     echo "Timing check failed! Error listing follows:"
     echo errorReport
 
-  seqObj.setDefinition("FOV", @[fov, fov, sliceThickness * float64(nSlices)])
+  result = seqObj
+
+when isMainModule:
+  let seqObj = writeEpiLabelSeq()
+  seqObj.setDefinition("FOV", @[220e-3, 220e-3, 3e-3 * 7.0])
   seqObj.setDefinition("Name", "epi_lbl")
   seqObj.writeSeq("examples/epi_label_nim.seq", createSignature = true)
-
-main()

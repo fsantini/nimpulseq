@@ -1,7 +1,7 @@
 import std/math
 import ../src/nimpulseq
 
-proc main() =
+proc writeEpiSeSeq*(): Sequence =
   # ======
   # SETUP
   # ======
@@ -90,6 +90,8 @@ proc main() =
     echo "Timing check failed! Error listing follows:"
     echo errorReport
 
-  seqObj.writeSeq("examples/epi_se_nim.seq", createSignature = true)
+  result = seqObj
 
-main()
+when isMainModule:
+  let seqObj = writeEpiSeSeq()
+  seqObj.writeSeq("examples/epi_se_nim.seq", createSignature = true)

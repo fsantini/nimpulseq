@@ -43,6 +43,8 @@ proc makeAdiabaticPulse*(
     phasePpm: float64 = 0.0,
 ): tuple[rf: Event, gz: Event, gzr: Event] =
   var sys = system
+  if use notin supportedRfUses:
+    raise newException(ValueError, "Invalid use parameter.")
   var dw = dwell
   if dw == 0.0:
     dw = sys.rfRasterTime

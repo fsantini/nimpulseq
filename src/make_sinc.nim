@@ -13,7 +13,7 @@ proc makeSincPulse*(
     flipAngle: float64,
     apodization: float64 = 0.0,
     delay: float64 = 0.0,
-    duration: float64 = 3e-3,
+    duration: float64 = 4e-3,
     dwell: float64 = 0.0,
     centerPos: float64 = 0.5,
     freqOffset: float64 = 0.0,

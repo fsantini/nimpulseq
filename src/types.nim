@@ -95,6 +95,8 @@ type
     adcRasterTime*: float64
     blockDurationRaster*: float64
     blockDurations*: Table[int, float64]
+    blockEventObjects*: Table[int, seq[Event]]
+    gradLastAmps*: array[3, float64]
     extensionNumericIdx*: seq[int]
     extensionStringIdx*: seq[string]
     versionMajor*: int

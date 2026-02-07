@@ -1,7 +1,7 @@
 import std/math
 import ../src/nimpulseq
 
-proc main() =
+proc writeHasteSeq*(): Sequence =
   # ======
   # SETUP
   # ======
@@ -277,6 +277,8 @@ proc main() =
     echo "Timing check failed. Error listing follows:"
     echo errorReport
 
-  seqObj.writeSeq("examples/haste_nim.seq", createSignature = true)
+  result = seqObj
 
-main()
+when isMainModule:
+  let seqObj = writeHasteSeq()
+  seqObj.writeSeq("examples/haste_nim.seq", createSignature = true)

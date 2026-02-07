@@ -1,7 +1,7 @@
 import std/math
 import ../src/nimpulseq
 
-proc main() =
+proc writeUteSeq*(): Sequence =
   # ======
   # SETUP
   # ======
@@ -181,8 +181,10 @@ proc main() =
     echo "Timing check failed. Error listing follows:"
     echo errorReport
 
-  seqObj.setDefinition("FOV", @[fov, fov, sliceThickness])
+  result = seqObj
+
+when isMainModule:
+  let seqObj = writeUteSeq()
+  seqObj.setDefinition("FOV", @[250e-3, 250e-3, 3e-3])
   seqObj.setDefinition("Name", "UTE")
   seqObj.writeSeq("examples/ute_nim.seq", createSignature = true)
-
-main()

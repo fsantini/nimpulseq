@@ -114,6 +114,8 @@ proc newSequence*(system: Opts = defaultOpts()): Sequence =
     adcRasterTime: system.adcRasterTime,
     blockDurationRaster: system.blockDurationRaster,
     blockDurations: initTable[int, float64](),
+    blockEventObjects: initTable[int, seq[Event]](),
+    gradLastAmps: [0.0, 0.0, 0.0],
     extensionNumericIdx: @[],
     extensionStringIdx: @[],
     versionMajor: 1,

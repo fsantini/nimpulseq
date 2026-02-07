@@ -1,7 +1,7 @@
 import std/math
 import ../src/nimpulseq
 
-proc main() =
+proc writeEpiSeRsSeq*(): Sequence =
   # ======
   # SETUP
   # ======
@@ -241,8 +241,10 @@ proc main() =
     echo "Timing check failed. Error listing follows:"
     echo errorReport
 
-  seqObj.setDefinition("FOV", @[fov, fov, sliceThickness])
+  result = seqObj
+
+when isMainModule:
+  let seqObj = writeEpiSeRsSeq()
+  seqObj.setDefinition("FOV", @[250e-3, 250e-3, 3e-3])
   seqObj.setDefinition("Name", "epi")
   seqObj.writeSeq("examples/epi_se_rs_nim.seq", createSignature = true)
-
-main()

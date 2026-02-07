@@ -15,6 +15,15 @@ proc makeBlockPulse*(
     freqPpm: float64 = 0.0,
     phasePpm: float64 = 0.0,
 ): Event =
+  # Validate use parameter
+  var validUse = false
+  for u in supportedRfUses:
+    if use == u:
+      validUse = true
+      break
+  if not validUse:
+    raise newException(ValueError, "Invalid use parameter. Must be one of " & $supportedRfUses)
+
   var dur = duration
   if dur == 0.0 and bandwidth == 0.0:
     dur = 4e-3

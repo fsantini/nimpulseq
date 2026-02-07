@@ -1,7 +1,7 @@
 import std/math
 import ../src/nimpulseq
 
-proc main() =
+proc writeMprageSeq*(): Sequence =
   # ======
   # SETUP
   # ======
@@ -165,6 +165,8 @@ proc main() =
       seqObj.addBlock(adc, gro1, scaleGrad(grad = gpe1, scale = pe1Steps[i]), gpe2je)
     seqObj.addBlock(groSp, makeDelay(trOutDelay), labelResetPar, labelIncLin)
 
-  seqObj.writeSeq("examples/mprage_nim.seq", createSignature = true)
+  result = seqObj
 
-main()
+when isMainModule:
+  let seqObj = writeMprageSeq()
+  seqObj.writeSeq("examples/mprage_nim.seq", createSignature = true)

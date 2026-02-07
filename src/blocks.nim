@@ -254,6 +254,42 @@ proc getExtensionTypeID*(seq: Sequence, extensionString: string): int =
   return extensionId
 
 proc setBlock*(seq: Sequence, blockIndex: int, events: openArray[Event]) =
+  # Gradient continuity check
+  var currFirst: array[3, float64] = [0.0, 0.0, 0.0]
+  var currLast: array[3, float64] = [0.0, 0.0, 0.0]
+  var hasGrad: array[3, bool] = [false, false, false]
+  for event in events:
+    if event.kind == ekTrap:
+      let ch = channelToIndex(event.trapChannel)
+      hasGrad[ch] = true
+      currFirst[ch] = 0.0  # traps always start from 0
+      currLast[ch] = 0.0   # traps always end at 0
+    elif event.kind == ekGrad:
+      let ch = channelToIndex(event.gradChannel)
+      hasGrad[ch] = true
+      if event.gradDelay > 0:
+        currFirst[ch] = 0.0
+      else:
+        currFirst[ch] = event.gradFirst
+      currLast[ch] = event.gradLast
+
+  let channels = ["x", "y", "z"]
+  for ch in 0 ..< 3:
+    let prevLast = seq.gradLastAmps[ch]
+    let first = currFirst[ch]
+    if abs(prevLast - first) > 1e-9:
+      raise newException(ValueError,
+        "Gradient continuity violated on channel " & channels[ch] &
+        ": previous block ends at " & $prevLast &
+        " but current block starts at " & $first)
+
+  # Update last amplitudes for next block
+  for ch in 0 ..< 3:
+    if hasGrad[ch]:
+      seq.gradLastAmps[ch] = currLast[ch]
+    else:
+      seq.gradLastAmps[ch] = 0.0
+
   var newBlock = newSeq[int32](7)
   var duration = 0.0
   var extensions: seq[tuple[extType: int, extRef: int]] = @[]
@@ -323,6 +359,10 @@ proc setBlock*(seq: Sequence, blockIndex: int, events: openArray[Event]) =
 
   seq.blockEvents[blockIndex] = newBlock
   seq.blockDurations[blockIndex] = duration
+  var eventList: seq[Event] = @[]
+  for e in events:
+    eventList.add(e)
+  seq.blockEventObjects[blockIndex] = eventList
 
 proc addBlock*(seq: Sequence, events: varargs[Event]) =
   var eventList: seq[Event] = @[]
