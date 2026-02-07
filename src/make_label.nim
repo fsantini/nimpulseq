@@ -1,6 +1,6 @@
 import types
 
-proc makeLabel*(label: string, labelType: string, value: int): Event =
+proc makeLabel*(labelType: string, label: string, value: int): Event =
   var found = false
   for sl in supportedLabels:
     if sl == label:

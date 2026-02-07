@@ -207,6 +207,12 @@ proc writeSeq*(seq_obj: Sequence, fileName: string, createSignature: bool = fals
   if not fn.endsWith(".seq"):
     fn = fn & ".seq"
 
+  # Calculate TotalDuration and store in definitions
+  var totalDur = 0.0
+  for _, d in seq_obj.blockDurations:
+    totalDur += d
+  seq_obj.definitions["TotalDuration"] = @[formatG(totalDur, 9)]
+
   var s = seq_obj
   if doRemoveDuplicates:
     s = removeDuplicates(seq_obj)

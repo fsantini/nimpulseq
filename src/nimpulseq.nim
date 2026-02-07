@@ -29,6 +29,45 @@ export make_delay
 import make_label
 export make_label
 
+import calc_rf_center
+export calc_rf_center
+
+import make_block_pulse
+export make_block_pulse
+
+import make_trigger
+export make_trigger
+
+import make_gauss_pulse
+export make_gauss_pulse
+
+import make_extended_trapezoid
+export make_extended_trapezoid
+
+import make_extended_trapezoid_area
+export make_extended_trapezoid_area
+
+import make_arbitrary_grad
+export make_arbitrary_grad
+
+import make_adiabatic_pulse
+export make_adiabatic_pulse
+
+import split_gradient_at
+export split_gradient_at
+
+import scale_grad
+export scale_grad
+
+import add_gradients
+export add_gradients
+
+import align
+export align
+
+import rotate
+export rotate
+
 import blocks
 export blocks
 

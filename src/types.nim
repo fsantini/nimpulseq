@@ -151,3 +151,8 @@ proc channelToIndex*(ch: GradChannel): int =
   of gcX: 0
   of gcY: 1
   of gcZ: 2
+
+proc roundHalfUp*(n: float64, decimals: int = 0): float64 =
+  ## Avoid banker's rounding inconsistencies.
+  let multiplier = pow(10.0, float64(decimals))
+  floor(abs(n) * multiplier + 0.5) / multiplier

@@ -99,8 +99,90 @@ proc registerGradEvent*(seq: Sequence, event: Event): int =
     ]
     let (gradId, _) = seq.gradLibrary.findOrInsert(data, 't')
     return gradId
+  elif event.kind == ekGrad:
+    var mayExist = true
+    var shapeIDs = @[0, 0]
+
+    # Calculate amplitude
+    var amplitude = 0.0
+    for w in event.gradWaveform:
+      if abs(w) > abs(amplitude):
+        amplitude = w
+    if amplitude == 0.0:
+      # Find first non-zero
+      for w in event.gradWaveform:
+        if w != 0.0:
+          amplitude = abs(w) * (if w < 0: -1.0 else: 1.0)
+          break
+
+    # Shape for waveform
+    var g = newSeq[float64](event.gradWaveform.len)
+    if amplitude != 0.0:
+      for i in 0 ..< g.len:
+        g[i] = event.gradWaveform[i] / amplitude
+    else:
+      g = event.gradWaveform
+
+    let cShape = compressShape(g)
+    var sData = @[float64(cShape.numSamples)]
+    sData.add(cShape.data)
+    let (shapeId0, found0) = seq.shapeLibrary.findOrInsert(sData)
+    shapeIDs[0] = shapeId0
+    mayExist = mayExist and found0
+
+    # Shape for timing
+    var timeArr = newSeq[float64](event.gradTt.len)
+    for i in 0 ..< event.gradTt.len:
+      timeArr[i] = event.gradTt[i] / seq.gradRasterTime
+    let cTime = compressShape(timeArr)
+    var tData = @[float64(cTime.numSamples)]
+    tData.add(cTime.data)
+
+    # Check for standard raster
+    if cTime.data.len == 4:
+      var isStandard = true
+      if abs(cTime.data[0] - 0.5) > 1e-6 or abs(cTime.data[1] - 1.0) > 1e-6 or
+         abs(cTime.data[2] - 1.0) > 1e-6 or abs(cTime.data[3] - float64(cTime.numSamples - 3)) > 1e-6:
+        isStandard = false
+      if isStandard:
+        shapeIDs[1] = 0  # Standard raster
+      else:
+        let (tId, tFound) = seq.shapeLibrary.findOrInsert(tData)
+        shapeIDs[1] = tId
+        mayExist = mayExist and tFound
+    elif cTime.data.len == 3:
+      var isHalfRaster = true
+      if abs(cTime.data[0] - 0.5) > 1e-6 or abs(cTime.data[1] - 0.5) > 1e-6 or
+         abs(cTime.data[2] - float64(cTime.numSamples - 2)) > 1e-6:
+        isHalfRaster = false
+      if isHalfRaster:
+        shapeIDs[1] = -1  # Half-raster flag
+      else:
+        let (tId, tFound) = seq.shapeLibrary.findOrInsert(tData)
+        shapeIDs[1] = tId
+        mayExist = mayExist and tFound
+    else:
+      let (tId, tFound) = seq.shapeLibrary.findOrInsert(tData)
+      shapeIDs[1] = tId
+      mayExist = mayExist and tFound
+
+    # Data layout: amplitude, first, last, shape_id_waveform, shape_id_timing, delay
+    let data = @[
+      amplitude,
+      event.gradFirst,
+      event.gradLast,
+      float64(shapeIDs[0]),
+      float64(shapeIDs[1]),
+      event.gradDelay,
+    ]
+
+    if mayExist:
+      let (gradId, _) = seq.gradLibrary.findOrInsert(data, 'g')
+      return gradId
+    else:
+      return seq.gradLibrary.insert(0, data, 'g')
   else:
-    raise newException(ValueError, "Only trap gradients supported for now")
+    raise newException(ValueError, "Unsupported gradient type")
 
 proc registerAdcEvent*(seq: Sequence, event: Event): tuple[adcId: int, shapeId: int] =
   let shapeId = 0 # No phase modulation support for now
@@ -132,6 +214,29 @@ proc registerLabelEvent*(seq: Sequence, event: Event): int =
   else:
     let (id, _) = seq.labelIncLibrary.findOrInsert(data)
     return id
+
+proc registerControlEvent*(seq: Sequence, event: Event): int =
+  var eventType: int
+  var eventChannel: int
+  if event.kind == ekOutput:
+    eventType = 1  # output = type 1
+    case event.trigChannel
+    of "osc0": eventChannel = 1
+    of "osc1": eventChannel = 2
+    of "ext1": eventChannel = 3
+    else: raise newException(ValueError, "Invalid output channel: " & event.trigChannel)
+  elif event.kind == ekTrigger:
+    eventType = 2  # trigger = type 2
+    case event.trigChannel
+    of "physio1": eventChannel = 1
+    of "physio2": eventChannel = 2
+    else: raise newException(ValueError, "Invalid trigger channel: " & event.trigChannel)
+  else:
+    raise newException(ValueError, "Unsupported control event type")
+
+  let data = @[float64(eventType), float64(eventChannel), event.trigDelay, event.trigDuration]
+  let (controlId, _) = seq.triggerLibrary.findOrInsert(data)
+  return controlId
 
 proc getExtensionTypeID*(seq: Sequence, extensionString: string): int =
   for i, s in seq.extensionStringIdx:
@@ -166,7 +271,12 @@ proc setBlock*(seq: Sequence, blockIndex: int, events: openArray[Event]) =
       newBlock[idx] = int32(trapId)
       duration = max(duration, event.trapDelay + event.trapRiseTime + event.trapFlatTime + event.trapFallTime)
     of ekGrad:
-      raise newException(ValueError, "Arbitrary gradients not yet supported")
+      let channelNum = channelToIndex(event.gradChannel)
+      let idx = 2 + channelNum
+      let gradId = seq.registerGradEvent(event)
+      newBlock[idx] = int32(gradId)
+      let gradDuration = event.gradDelay + ceil(event.gradTt[^1] / seq.gradRasterTime - 1e-10) * seq.gradRasterTime
+      duration = max(duration, gradDuration)
     of ekAdc:
       let (adcId, _) = seq.registerAdcEvent(event)
       newBlock[5] = int32(adcId)
@@ -179,7 +289,10 @@ proc setBlock*(seq: Sequence, blockIndex: int, events: openArray[Event]) =
       let extType = seq.getExtensionTypeID(extTypeStr)
       extensions.add((extType, labelId))
     of ekTrigger, ekOutput:
-      raise newException(ValueError, "Trigger/Output not yet supported")
+      let controlId = seq.registerControlEvent(event)
+      let extType = seq.getExtensionTypeID("TRIGGERS")
+      extensions.add((extType, controlId))
+      duration = max(duration, event.trigDelay + event.trigDuration)
 
   # Add extensions (sorted by ref, built as reversed linked list)
   if extensions.len > 0:
@@ -216,4 +329,8 @@ proc addBlock*(seq: Sequence, events: varargs[Event]) =
   for e in events:
     eventList.add(e)
   seq.setBlock(seq.nextFreeBlockID, eventList)
+  seq.nextFreeBlockID += 1
+
+proc addBlock*(seq: Sequence, events: seq[Event]) =
+  seq.setBlock(seq.nextFreeBlockID, events)
   seq.nextFreeBlockID += 1
