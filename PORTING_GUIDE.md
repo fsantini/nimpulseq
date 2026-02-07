@@ -556,11 +556,28 @@ addGradients(@[g1, g2], system)
 rotate(@[gx, gz], angle, "z", system)
 ```
 
-### 6.11 `duration()` vs `totalDuration()`
+### 6.11 Gradient Continuity Checking
+
+`addBlock` enforces gradient continuity across consecutive blocks. The ending amplitude of a gradient on each channel must match the starting amplitude of the next block's gradient on the same channel. Trapezoid gradients always start and end at 0. Arbitrary gradients use their `gradFirst`/`gradLast` fields.
+
+If you get a `ValueError: Gradient continuity violated on channel ...`, ensure that your gradient waveforms connect smoothly. Common fixes:
+- Add a rephasing gradient between blocks
+- Use `makeExtendedTrapezoid` for gradients that don't start/end at zero
+- Set `gradFirst`/`gradLast` explicitly on arbitrary gradients
+
+### 6.12 `use` Parameter Validation
+
+All RF pulse creation functions (`makeSincPulse`, `makeBlockPulse`, `makeGaussPulse`, `makeAdiabaticPulse`) validate the `use` parameter against `supportedRfUses`. Valid values are: `"excitation"`, `"refocusing"`, `"inversion"`, `"saturation"`, `"preparation"`, `"other"`, `"undefined"`. Passing an invalid value raises `ValueError`.
+
+### 6.13 `scaleGrad` Amplitude/Slew Validation
+
+`scaleGrad` validates that the scaled gradient does not exceed `system.maxGrad` (amplitude) or `system.maxSlew` (slew rate). If either limit is violated, a `ValueError` is raised. This matches PyPulseq behavior.
+
+### 6.14 `duration()` vs `totalDuration()`
 
 Python's `seq.duration()` returns `(total_duration, num_blocks, block_durations)`. Nim's `seqObj.totalDuration()` returns only the total duration as a `float64`.
 
-### 6.12 UTE-Style Manual Gradient Rotation
+### 6.15 UTE-Style Manual Gradient Rotation
 
 When rotating a single gradient by cos/sin into two channels (e.g., for UTE), you must manually create new `Event` objects:
 
@@ -590,10 +607,10 @@ These produce byte-identical `.seq` output compared to PyPulseq:
 
 | Function | Notes |
 |----------|-------|
-| `make_sinc_pulse` | All parameters supported |
-| `make_block_pulse` | All parameters supported |
-| `make_gauss_pulse` | All parameters supported |
-| `make_adiabatic_pulse` | Only `"hypsec"` pulse type |
+| `make_sinc_pulse` | All parameters supported; validates `use` |
+| `make_block_pulse` | All parameters supported; validates `use` |
+| `make_gauss_pulse` | All parameters supported; validates `use` |
+| `make_adiabatic_pulse` | Only `"hypsec"` pulse type; validates `use` |
 | `make_trapezoid` | All three calculation modes |
 | `make_extended_trapezoid` | `convert_to_arbitrary` not supported |
 | `make_extended_trapezoid_area` | `convert_to_arbitrary` not supported |
@@ -605,14 +622,14 @@ These produce byte-identical `.seq` output compared to PyPulseq:
 | `make_digital_output_pulse` | |
 | `calc_duration` | |
 | `calc_rf_center` | |
-| `scale_grad` | |
+| `scale_grad` | Validates amplitude and slew rate limits post-scaling |
 | `add_gradients` | Handles mixed trap + extended trap |
 | `split_gradient_at` | |
 | `rotate` | |
 | `align` (as `alignEvents`) | |
-| `Sequence.add_block` | |
+| `Sequence.add_block` | Enforces gradient continuity across blocks |
 | `Sequence.set_definition` | |
-| `Sequence.check_timing` | Simplified (block raster only) |
+| `Sequence.check_timing` | Full validation: dead times, raster, ringdown, duration mismatch |
 | `Sequence.write` (as `writeSeq`) | With MD5 signature support |
 | `Sequence.register_grad_event` | |
 | `Opts` (as `newOpts`) | All units supported |
@@ -626,7 +643,6 @@ These produce byte-identical `.seq` output compared to PyPulseq:
 | `make_adc` | The `phase_modulation` parameter (numpy array for per-sample phase) is not supported. |
 | `make_extended_trapezoid` | The `convert_to_arbitrary` parameter is not supported (always uses time-point representation). |
 | `make_extended_trapezoid_area` | The `convert_to_arbitrary` parameter is not supported. |
-| `check_timing` | Only checks block duration raster alignment. Does not check RF/ADC dead times, gradient slew rates, or per-event raster alignment like PyPulseq does. |
 | `Sequence.duration` (as `totalDuration`) | Returns only total duration. Does not return `num_blocks` or per-block duration array. |
 
 ### Not Implemented Functions
@@ -672,13 +688,53 @@ These PyPulseq functions have no NimPulseq equivalent:
 
 ### Summary
 
-NimPulseq implements the complete **sequence generation pipeline**: event creation, block assembly, timing validation, and `.seq` file writing. All functions needed to produce `.seq` files are available. The unimplemented functions fall into categories that are not needed for `.seq` file generation:
+NimPulseq implements the complete **sequence generation pipeline**: event creation, block assembly, timing validation, and `.seq` file writing. All functions needed to produce `.seq` files are available and verified by 1052 automated tests (see [Test Suite](#8-test-suite)). The unimplemented functions fall into categories that are not needed for `.seq` file generation:
 
 - **Visualization** (plotting)
 - **Analysis** (k-space calculation, gradient spectra, PNS)
 - **File reading** (parsing `.seq` files)
 - **Scanner deployment** (install)
 - **Advanced RF design** (SigPy integration, arbitrary RF)
+
+---
+
+## 8. Test Suite
+
+NimPulseq includes a comprehensive test suite ported from PyPulseq, located in `nimpulseq/tests/`. Run all tests with:
+
+```bash
+cd nimpulseq && bash tests/run_tests.sh
+```
+
+### Test Files (1052 tests total)
+
+| Test File | Tests | Description |
+|-----------|-------|-------------|
+| `test_calc_duration` | 816 | Duration calculation for all event types and combinations |
+| `test_make_trapezoid` | 19 | Trapezoid creation modes and error handling |
+| `test_make_block_pulse` | 10 | Block pulse creation and `use` validation |
+| `test_make_gauss_pulse` | 8 | Gaussian pulse creation and `use` validation |
+| `test_make_adiabatic_pulse` | 14 | Adiabatic pulse creation (hypsec) and `use` validation |
+| `test_make_extended_trapezoid_area` | 134 | Extended trapezoid area calculations with varying parameters |
+| `test_scale_grad` | 17 | Gradient scaling with amplitude/slew limit checks |
+| `test_block` | 11 | Block assembly and gradient continuity enforcement |
+| `test_check_timing` | 1 | Comprehensive timing validation |
+| `test_sequence` | 22 | End-to-end: write `.seq` files and compare against PyPulseq expected output |
+
+### Skipped Tests
+
+| Test File | Reason |
+|-----------|--------|
+| `test_sequence_plot` | Plotting not implemented |
+| `test_soft_delay` | `make_soft_delay` not implemented |
+| `test_sigpy` | SigPy integration not implemented |
+| `test_sequence_backwards_compatibility` | `Sequence.read` not implemented |
+| `test_calc_adc_segments` | `calc_adc_segments` not implemented |
+| `test_mod_grad_axis` | `mod_grad_axis` not implemented |
+
+### Expected Output
+
+The `test_sequence` tests compare generated `.seq` files against reference output from PyPulseq (symlinked at `tests/expected_output/`). Comparison skips the first 7 lines (header with timestamps) and last 2 lines (MD5 signature). Numerical values are compared with a relative tolerance of 1e-5 to account for minor floating-point differences between implementations.
 
 ---
 

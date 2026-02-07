@@ -202,6 +202,8 @@ proc addBlock*(seq: Sequence, events: seq[Event])
 
 Appends a new block containing the given events. All events in a block execute simultaneously. The `seq[Event]` overload is provided for passing the result of `rotate()`.
 
+Enforces **gradient continuity**: the starting amplitude of each gradient must match the ending amplitude of the same channel in the previous block. Raises `ValueError` if a discontinuity is detected. Trapezoid gradients always start and end at 0; arbitrary gradients use their `gradFirst`/`gradLast` fields.
+
 ### `setDefinition`
 
 ```nim
@@ -234,7 +236,15 @@ Pre-registers a gradient event in the library without adding it to a block. Retu
 proc checkTiming*(seq: Sequence): tuple[ok: bool, errors: seq[TimingError]]
 ```
 
-Validates that all block durations align to the block duration raster. Returns a tuple of `(ok, errors)`.
+Performs comprehensive timing validation on the sequence. Returns a tuple of `(ok, errors)` where each `TimingError` contains the block index and a description. Checks include:
+
+- **BLOCK_DURATION_MISMATCH** — stored block duration differs from the computed duration of its events
+- **RASTER** — event timing fields not aligned to their respective raster times (gradient, RF, ADC, block duration)
+- **RF_DEAD_TIME** — RF delay is less than the system RF dead time
+- **RF_RINGDOWN_TIME** — RF extends beyond block duration minus ringdown time
+- **ADC_DEAD_TIME** — ADC delay is less than the system ADC dead time
+- **POST_ADC_DEAD_TIME** — ADC acquisition ends after block duration minus system dead time
+- **NEGATIVE_DELAY** — any event has a negative delay value
 
 ### `writeSeq`
 
@@ -260,7 +270,7 @@ proc makeSincPulse*(
     flipAngle: float64,           # Flip angle in radians
     apodization: float64 = 0.0,   # Hanning window fraction (0..1)
     delay: float64 = 0.0,         # Delay before pulse (s)
-    duration: float64 = 3e-3,     # Pulse duration (s)
+    duration: float64 = 4e-3,     # Pulse duration (s)
     dwell: float64 = 0.0,         # RF dwell time (0 = auto)
     centerPos: float64 = 0.5,     # Center position (0..1)
     freqOffset: float64 = 0.0,    # Frequency offset (Hz)
@@ -277,7 +287,7 @@ proc makeSincPulse*(
 ): tuple[rf: Event, gz: Event, gzr: Event]
 ```
 
-Creates a sinc RF pulse. Always returns a 3-tuple; when `returnGz = false`, `gz` and `gzr` are `nil`.
+Creates a sinc RF pulse. Always returns a 3-tuple; when `returnGz = false`, `gz` and `gzr` are `nil`. Validates that `use` is one of `supportedRfUses`.
 
 ### `makeBlockPulse`
 
@@ -297,7 +307,7 @@ proc makeBlockPulse*(
 ): Event
 ```
 
-Creates a rectangular (hard) RF pulse.
+Creates a rectangular (hard) RF pulse. Validates that `use` is one of `supportedRfUses`; raises `ValueError` if not.
 
 ### `makeGaussPulse`
 
@@ -324,7 +334,7 @@ proc makeGaussPulse*(
 ): tuple[rf: Event, gz: Event, gzr: Event]
 ```
 
-Creates a Gaussian RF pulse. Returns 3-tuple like `makeSincPulse`.
+Creates a Gaussian RF pulse. Returns 3-tuple like `makeSincPulse`. Validates that `use` is one of `supportedRfUses`; raises `ValueError` if not.
 
 ### `makeAdiabaticPulse`
 
@@ -352,7 +362,7 @@ proc makeAdiabaticPulse*(
 ): tuple[rf: Event, gz: Event, gzr: Event]
 ```
 
-Creates an adiabatic RF pulse. Currently only the `"hypsec"` pulse type is implemented.
+Creates an adiabatic RF pulse. Currently only the `"hypsec"` pulse type is implemented. Validates that `use` is one of `supportedRfUses`; raises `ValueError` if not.
 
 ### `makeTrapezoid`
 
@@ -503,6 +513,10 @@ proc scaleGrad*(
 ```
 
 Scales a gradient's amplitude by the given factor. Works for both trapezoid and arbitrary gradients. Returns a new event.
+
+After scaling, validates hardware constraints:
+- **Amplitude**: raises `ValueError` ("maximum amplitude exceeded") if the scaled amplitude exceeds `system.maxGrad`
+- **Slew rate**: raises `ValueError` ("maximum slew rate exceeded") if the slew rate (computed from amplitude/rise_time for trapezoids, or from waveform differences for arbitrary gradients) exceeds `system.maxSlew`
 
 ### `addGradients`
 
