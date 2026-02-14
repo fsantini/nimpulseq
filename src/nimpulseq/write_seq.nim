@@ -220,7 +220,7 @@ proc writeSeq*(seq_obj: Sequence, fileName: string, createSignature: bool = fals
   var f = open(fn, fmWrite)
 
   f.write("# Pulseq sequence file\n")
-  f.write("# Created by PyPulseq\n\n")
+  f.write("# Created by NimPulseq\n\n")
 
   f.write("[VERSION]\n")
   f.write(&"major {s.versionMajor}\n")

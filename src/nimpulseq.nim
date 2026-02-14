@@ -1,80 +1,80 @@
 import std/[tables, math]
-import types
+import nimpulseq/types
 export types
 
-import opts
+import nimpulseq/opts
 export opts
 
-import event_lib
+import nimpulseq/event_lib
 export event_lib
 
-import calc_duration
+import nimpulseq/calc_duration
 export calc_duration
 
-import compress
+import nimpulseq/compress
 export compress
 
-import make_trap
+import nimpulseq/make_trap
 export make_trap
 
-import make_sinc
+import nimpulseq/make_sinc
 export make_sinc
 
-import make_adc
+import nimpulseq/make_adc
 export make_adc
 
-import make_delay
+import nimpulseq/make_delay
 export make_delay
 
-import make_label
+import nimpulseq/make_label
 export make_label
 
-import calc_rf_center
+import nimpulseq/calc_rf_center
 export calc_rf_center
 
-import make_block_pulse
+import nimpulseq/make_block_pulse
 export make_block_pulse
 
-import make_trigger
+import nimpulseq/make_trigger
 export make_trigger
 
-import make_gauss_pulse
+import nimpulseq/make_gauss_pulse
 export make_gauss_pulse
 
-import make_extended_trapezoid
+import nimpulseq/make_extended_trapezoid
 export make_extended_trapezoid
 
-import make_extended_trapezoid_area
+import nimpulseq/make_extended_trapezoid_area
 export make_extended_trapezoid_area
 
-import make_arbitrary_grad
+import nimpulseq/make_arbitrary_grad
 export make_arbitrary_grad
 
-import make_adiabatic_pulse
+import nimpulseq/make_adiabatic_pulse
 export make_adiabatic_pulse
 
-import split_gradient_at
+import nimpulseq/split_gradient_at
 export split_gradient_at
 
-import scale_grad
+import nimpulseq/scale_grad
 export scale_grad
 
-import add_gradients
+import nimpulseq/add_gradients
 export add_gradients
 
-import align
+import nimpulseq/align
 export align
 
-import rotate
+import nimpulseq/rotate
 export rotate
 
-import blocks
+import nimpulseq/blocks
 export blocks
 
-import check_timing
+import nimpulseq/check_timing
 export check_timing
 
-import write_seq
+import nimpulseq/write_seq
 export write_seq
 
 proc setDefinition*(seq_obj: Sequence, key: string, value: seq[string]) =

@@ -106,4 +106,4 @@ when isMainModule:
   let seqObj = writeGreSeq()
   seqObj.setDefinition("FOV", @[256e-3, 256e-3, 3e-3])
   seqObj.setDefinition("Name", "gre")
-  seqObj.writeSeq("examples/gre_nim.seq", createSignature = true)
+  seqObj.writeSeq("gre_nim.seq", createSignature = true)
