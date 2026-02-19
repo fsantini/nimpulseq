@@ -202,7 +202,7 @@ proc removeDuplicates*(seq_obj: Sequence): Sequence =
 # =============================================================================
 # writeSeq
 # =============================================================================
-proc writeSeq*(seq_obj: Sequence, fileName: string, createSignature: bool = false, doRemoveDuplicates: bool = true) =
+proc writeSeq*(seq_obj: Sequence, fileName: string, createSignature: bool = false, doRemoveDuplicates: bool = true, preamble: string = "") =
   var fn = fileName
   if not fn.endsWith(".seq"):
     fn = fn & ".seq"
@@ -221,6 +221,8 @@ proc writeSeq*(seq_obj: Sequence, fileName: string, createSignature: bool = fals
 
   f.write("# Pulseq sequence file\n")
   f.write("# Created by NimPulseq\n\n")
+  if preamble.len > 0:
+    f.write("# " & preamble.replace("\n", "\n# ") & "\n\n")
 
   f.write("[VERSION]\n")
   f.write(&"major {s.versionMajor}\n")
