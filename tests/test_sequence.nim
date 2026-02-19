@@ -52,19 +52,33 @@ proc linesApproxEqual(line1, line2: string, relTol: float64 = 1e-5): bool =
   return true
 
 proc compareSeqFiles(file1, file2: string) =
-  ## Compare two .seq files, skipping first 7 lines (header) and last 2 lines (signature).
+  ## Compare two .seq files, skipping everything before [VERSION] and last 2 lines (signature).
   ## Uses zip semantics (compare up to the shorter file length, like Python's zip).
   let lines1 = readFile(file1).splitLines()
   let lines2 = readFile(file2).splitLines()
-  # Skip header (7 lines) and signature (last 2 lines)
-  let content1 = lines1[7 .. ^3]
-  let content2 = lines2[7 .. ^3]
+  var versionLine1 = -1
+  var versionLine2 = -1
+  for i, line in lines1:
+    if line.strip() == "[VERSION]":
+      versionLine1 = i
+      break
+  for i, line in lines2:
+    if line.strip() == "[VERSION]":
+      versionLine2 = i
+      break
+
+  doAssert versionLine1 >= 0, &"[VERSION] section not found in {file1}"
+  doAssert versionLine2 >= 0, &"[VERSION] section not found in {file2}"
+
+  # Skip variable-length header and signature (last 2 lines)
+  let content1 = lines1[versionLine1 .. ^3]
+  let content2 = lines2[versionLine2 .. ^3]
   doAssert content1.len == content2.len,
     &"Line count mismatch: {content1.len} vs {content2.len}"
   for i in 0 ..< content1.len:
     if content1[i] != content2[i]:
       doAssert linesApproxEqual(content1[i], content2[i]),
-        &"Line {i+8} differs:\n  got:      '{content1[i]}'\n  expected: '{content2[i]}'"
+        &"Line differs (file1 line {versionLine1 + i + 1}, file2 line {versionLine2 + i + 1}):\n  got:      '{content1[i]}'\n  expected: '{content2[i]}'"
 
 proc writeAndCompare(seqObj: Sequence, name: string) =
   let outFile = tmpDir / (name & ".seq")
