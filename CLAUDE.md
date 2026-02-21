@@ -77,3 +77,54 @@ seqObj.writeSeq("output.seq", createSignature = true)
 - `API.md`: Complete function signatures and parameters
 - `PORTING_GUIDE.md`: PyPulseq-to-NimPulseq conversion guide with examples
 - `README.md`: Project overview and example table
+- `docs/`: Sphinx documentation source (builds to HTML via ReadTheDocs)
+
+### Keeping documentation in sync
+
+**Always apply all three steps below when modifying or adding exported symbols.**
+
+#### 1. Docstrings in source (`src/`)
+
+Every exported symbol — procs, types, consts, enum variants, and type fields — must have a `##` docstring. Docstrings are written in RST markup (Nim parses them that way).
+
+- **New proc**: add a `## ...` block immediately after the signature, before the first statement. Describe purpose, all parameters, return value, and any exceptions raised.
+- **Modified proc**: update the docstring to reflect changed parameters, semantics, or constraints.
+- **New type or field**: add `## ...` inline on the same line or as the first line of the object body.
+- **Removed symbol**: no action needed for the docstring itself, but update the docs below.
+
+#### 2. Regenerate the Sphinx RST files
+
+The `docs/api/` directory is generated — never edit files there by hand.
+
+```sh
+# From the repo root (requires Nim in PATH):
+python docs/generate_rst.py
+```
+
+Run this after every change to exported symbols. The script calls `nim jsondoc` on each source module and converts the JSON output to RST under `docs/api/`.
+
+To verify the HTML builds correctly:
+
+```sh
+# Activate the venv first (created once with: python3 -m venv docs/.venv && docs/.venv/bin/pip install -r docs/requirements.txt)
+LC_ALL=C.UTF-8 docs/.venv/bin/sphinx-build -T -b html docs/ docs/_build/html
+```
+
+Or using the Makefile (runs both steps):
+
+```sh
+make -C docs html
+```
+
+#### 3. Update the narrative docs when features change
+
+Some documentation is hand-maintained and must be kept in sync manually:
+
+| File | Update when… |
+|------|-------------|
+| `docs/porting.rst` — *Not Implemented* section | A previously missing PyPulseq feature is added, or a new deliberate omission is introduced. Keep the bullet list accurate. |
+| `docs/porting.rst` — naming/unit tables | A new `make_*` function or gradient operation is added. Add a row to the relevant table. |
+| `docs/quickstart.rst` — example sequence table | A new example is added to `examples/`. Add a row. |
+| `README.md` — API tables | A new public function or method is added. Add a row to the relevant table. |
+| `API.md` | New or changed function signatures. Update the entry. |
+| `docs/generate_rst.py` — `MODULES` list | A new source file is added under `src/nimpulseq/`. Append a `(module_name, path, title)` tuple to `MODULES`. |
