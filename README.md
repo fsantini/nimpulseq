@@ -197,3 +197,7 @@ If you use NimPulseq in your research, please cite the original PyPulseq paper:
 ## License
 
 NimPulseq is released under the [MIT License](LICENSE).
+
+## Details
+
+The current version is based on [commit 36d9fa3 of PyPulseq](https://github.com/imr-framework/pypulseq/commit/36d9fa3a9d84321ec3653efcb0b902c5d51d4c86) 2026-02-02
