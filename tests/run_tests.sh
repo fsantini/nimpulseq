@@ -4,6 +4,12 @@
 
 set -e
 
+# If the script was invoked from the tests/ directory, move up one level
+if [ "$(basename "$PWD")" = "tests" ]; then
+  echo "Detected execution from tests/; changing to parent directory."
+  cd ..
+fi
+
 TESTS=(
   tests/test_calc_duration.nim
   tests/test_make_trapezoid.nim
