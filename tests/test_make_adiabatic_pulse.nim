@@ -2,7 +2,7 @@
 ## Note: only hypsec is implemented in NimPulseq. Wurst tests are skipped.
 
 import std/[strformat, math]
-import ../src/nimpulseq
+import nimpulseq
 
 var passed = 0
 var failed = 0

@@ -2,7 +2,7 @@
 ## Skips convert_to_arbitrary tests (not implemented in NimPulseq).
 
 import std/[strformat, math, random]
-import ../src/nimpulseq
+import nimpulseq
 
 var passed = 0
 var failed = 0

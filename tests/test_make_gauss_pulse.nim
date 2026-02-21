@@ -1,7 +1,7 @@
 ## Tests for the make_gauss_pulse module
 
 import std/strformat
-import ../src/nimpulseq
+import nimpulseq
 
 var passed = 0
 var failed = 0

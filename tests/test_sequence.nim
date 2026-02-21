@@ -3,7 +3,7 @@
 ## Skips: seq6 (soft_delay), write_gre_label_softdelay, read/plot/recreate tests.
 
 import std/[strformat, math, strutils, os]
-import ../src/nimpulseq
+import nimpulseq
 import ../examples/write_gre
 import ../examples/write_gre_label
 import ../examples/write_epi

@@ -1,7 +1,7 @@
 ## Tests for the scale_grad module
 
 import std/[strformat, math]
-import ../src/nimpulseq
+import nimpulseq
 
 var passed = 0
 var failed = 0

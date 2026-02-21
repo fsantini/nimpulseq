@@ -2,7 +2,7 @@
 ## Additionally, tests the combination of any 2 and 3 of those events.
 
 import std/[strformat, math]
-import ../src/nimpulseq
+import nimpulseq
 
 var passed = 0
 var failed = 0

@@ -1,5 +1,5 @@
 import std/math
-import ../src/nimpulseq
+import nimpulseq
 
 proc writeEpiSeSeq*(): Sequence =
   # ======
