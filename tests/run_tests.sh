@@ -32,7 +32,7 @@ for t in "${TESTS[@]}"; do
   echo "=========================================="
   echo "Running: $name"
   echo "=========================================="
-  if nim c -r --hints:off "$t"; then
+  if nim r --hints:off "$t"; then
     echo ""
   else
     failed_tests+=("$name")
