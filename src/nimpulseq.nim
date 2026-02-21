@@ -29,6 +29,9 @@ export make_delay
 import nimpulseq/make_label
 export make_label
 
+import nimpulseq/make_soft_delay
+export make_soft_delay
+
 import nimpulseq/calc_rf_center
 export calc_rf_center
 
@@ -129,6 +132,9 @@ proc newSequence*(system: Opts = defaultOpts()): Sequence =
     versionMajor: 1,
     versionMinor: 5,
     versionRevision: "0",
+    softDelayData: initOrderedTable[int, tuple[numID: int; offset: float64; factor: float64; hint: string]](),
+    softDelayHints: initTable[string, int](),
+    nextFreeSoftDelayID: 1,
   )
 
   # Set default definitions
@@ -136,3 +142,55 @@ proc newSequence*(system: Opts = defaultOpts()): Sequence =
   result.setDefinition("BlockDurationRaster", @[formatG(system.blockDurationRaster, 9)])
   result.setDefinition("GradientRasterTime", @[formatG(system.gradRasterTime, 9)])
   result.setDefinition("RadiofrequencyRasterTime", @[formatG(system.rfRasterTime, 9)])
+
+proc applySoftDelay*(seq_obj: Sequence, delays: Table[string, float64]) =
+  ## Updates block durations for all blocks containing a soft delay event.
+  ##
+  ## For each block with a soft delay whose hint is a key in `delays`, the new
+  ## duration is computed as ``round((delays[hint] / factor + offset) / raster) * raster``.
+  ## Raises `ValueError` if a duration would be negative, if numID/hint consistency
+  ## is violated, or if a key in `delays` is not present in the sequence.
+  var seenHints: Table[string, int]   # hint → numID
+  var seenNumIDs: Table[int, string]  # numID → hint
+
+  for blockID, events in seq_obj.blockEventObjects:
+    for event in events:
+      if event.kind != ekSoftDelay:
+        continue
+      let hint = event.sdHint
+      let numID = seq_obj.softDelayHints.getOrDefault(hint, -1)
+
+      # Consistency checks
+      if hint in seenHints:
+        if seenHints[hint] != numID:
+          raise newException(ValueError,
+            "Soft delay in block " & $blockID & " with hint '" & hint &
+            "' has inconsistent numID.")
+      else:
+        seenHints[hint] = numID
+
+      if numID in seenNumIDs:
+        if seenNumIDs[numID] != hint:
+          raise newException(ValueError,
+            "Soft delay in block " & $blockID & " with numID " & $numID &
+            " has inconsistent hint.")
+      else:
+        seenNumIDs[numID] = hint
+
+      if hint in delays:
+        let newDurRaw = delays[hint] / event.sdFactor + event.sdOffset
+        let newDur = round(newDurRaw / seq_obj.blockDurationRaster) * seq_obj.blockDurationRaster
+        if newDur < 0.0:
+          raise newException(ValueError,
+            "Soft delay '" & hint & "' in block " & $blockID &
+            ": calculated duration is negative.")
+        seq_obj.blockDurations[blockID] = newDur
+
+  # Check that all specified hints exist in the sequence
+  for hint in delays.keys:
+    if hint notin seenHints:
+      var available: seq[string] = @[]
+      for k in seenHints.keys:
+        available.add(k)
+      raise newException(ValueError,
+        "Soft delay '" & hint & "' not found in sequence. Available: " & $available)

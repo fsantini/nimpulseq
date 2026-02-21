@@ -15,6 +15,7 @@ import ../examples/write_tse
 import ../examples/write_mprage
 import ../examples/write_radial_gre
 import ../examples/write_ute
+import ../examples/write_gre_label_softdelay
 
 var passed = 0
 var failed = 0
@@ -237,6 +238,17 @@ proc seq5(): Sequence =
 
   result = seqObj
 
+proc seq6(): Sequence =
+  var seqObj = newSequence()
+  for i in 0 ..< 10:
+    seqObj.addBlock(makeBlockPulse(PI / 8.0, duration = 1e-3))
+    seqObj.addBlock(makeTrapezoid("x", area = 1000.0))
+    seqObj.addBlock(makeTrapezoid("y", area = -500.0 + float64(i) * 100.0))
+    seqObj.addBlock(makeTrapezoid("x", area = -500.0))
+    seqObj.addBlock(makeSoftDelay(hint = "TE", numID = 0, offset = 1.0, factor = 1.0, defaultDuration = 10e-6))
+    seqObj.addBlock(makeTrapezoid("x", area = 1000.0, duration = 10e-3), makeAdc(numSamples = 100, duration = 10e-3))
+  result = seqObj
+
 proc seqTrapOnly(): Sequence =
   var seqObj = newSequence()
   seqObj.addBlock(makeTrapezoid("x", area = 1000.0))
@@ -281,7 +293,8 @@ test "sequence write/compare seq4":
 test "sequence write/compare seq5":
   writeAndCompare(seq5(), "seq5")
 
-# seq6 skipped (soft_delay not implemented)
+test "sequence write/compare seq6":
+  writeAndCompare(seq6(), "seq6")
 
 test "sequence write/compare seq_trap_only":
   writeAndCompare(seqTrapOnly(), "seq_trap_only")
@@ -326,8 +339,8 @@ test "write_radial_gre":
 test "write_ute":
   writeAndCompare(writeUteSeq(), "write_ute")
 
-echo "[SKIP] write_gre_label_softdelay (soft_delay not implemented)"
-echo "[SKIP] seq6 (soft_delay not implemented)"
+test "write_gre_label_softdelay":
+  writeAndCompare(writeGreLabelSoftdelaySeq(), "write_gre_label_softdelay")
 
 # Clean up temp dir
 removeDir(tmpDir)

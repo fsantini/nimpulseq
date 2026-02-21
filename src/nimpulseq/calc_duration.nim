@@ -21,3 +21,5 @@ proc calcDuration*(events: varargs[Event]): float64 =
       result = max(result, event.trigDelay + event.trigDuration)
     of ekLabelSet, ekLabelInc:
       discard # Labels have zero duration
+    of ekSoftDelay:
+      result = max(result, event.sdDefaultDuration)

@@ -46,6 +46,7 @@ MODULES: list[tuple[str, Path, str]] = [
     ("make_adc",                     SRC_DIR / "nimpulseq" / "make_adc.nim",                 "make_adc — ADC events"),
     ("make_delay",                   SRC_DIR / "nimpulseq" / "make_delay.nim",               "make_delay — Delay events"),
     ("make_label",                   SRC_DIR / "nimpulseq" / "make_label.nim",               "make_label — Label events"),
+    ("make_soft_delay",              SRC_DIR / "nimpulseq" / "make_soft_delay.nim",          "make_soft_delay — Soft delay events"),
     ("make_trigger",                 SRC_DIR / "nimpulseq" / "make_trigger.nim",             "make_trigger — Trigger and output events"),
     ("make_extended_trapezoid",      SRC_DIR / "nimpulseq" / "make_extended_trapezoid.nim",  "make_extended_trapezoid — Piecewise-linear gradients"),
     ("make_extended_trapezoid_area", SRC_DIR / "nimpulseq" / "make_extended_trapezoid_area.nim", "make_extended_trapezoid_area — Extended trapezoid from area"),

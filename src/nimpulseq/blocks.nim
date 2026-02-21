@@ -226,6 +226,48 @@ proc registerLabelEvent*(seq: Sequence, event: Event): int =
     let (id, _) = seq.labelIncLibrary.findOrInsert(data)
     return id
 
+proc registerSoftDelayEvent*(seq: Sequence, event: Event): int =
+  ## Assigns a numID to the soft delay (based on hint), then finds or inserts the
+  ## ``(numID, offset, factor, hint)`` tuple in the sequence's soft delay store.
+  ## Returns the assigned soft delay ID.
+  var assignedNumID: int
+  if event.sdHint in seq.softDelayHints:
+    assignedNumID = seq.softDelayHints[event.sdHint]
+    if event.sdNumID >= 0 and event.sdNumID != assignedNumID:
+      raise newException(ValueError,
+        "Soft delay hint '" & event.sdHint & "' is already assigned to numID " &
+        $assignedNumID & ". Cannot use numID " & $event.sdNumID & ".")
+  else:
+    if event.sdNumID < 0:
+      # Auto-assign: next available numID (max of existing + 1)
+      var maxNumID = -1
+      for v in seq.softDelayHints.values:
+        if v > maxNumID:
+          maxNumID = v
+      assignedNumID = maxNumID + 1
+    else:
+      # User-provided numID: check it is not already taken by another hint
+      for hint, numID in seq.softDelayHints:
+        if numID == event.sdNumID:
+          raise newException(ValueError,
+            "numID " & $event.sdNumID & " is already used by soft delay '" & hint & "'.")
+      assignedNumID = event.sdNumID
+    seq.softDelayHints[event.sdHint] = assignedNumID
+
+  # Find or insert in softDelayData
+  for id, data in seq.softDelayData:
+    if data.numID == assignedNumID and
+       abs(data.offset - event.sdOffset) < 1e-12 and
+       abs(data.factor - event.sdFactor) < 1e-12 and
+       data.hint == event.sdHint:
+      return id
+
+  let newId = seq.nextFreeSoftDelayID
+  seq.softDelayData[newId] = (numID: assignedNumID, offset: event.sdOffset,
+                               factor: event.sdFactor, hint: event.sdHint)
+  seq.nextFreeSoftDelayID += 1
+  return newId
+
 proc registerControlEvent*(seq: Sequence, event: Event): int =
   ## Stores a trigger (`ekTrigger`) or digital output (`ekOutput`) event in `triggerLibrary`.
   ## Returns the assigned trigger library ID.
@@ -350,6 +392,28 @@ proc setBlock*(seq: Sequence, blockIndex: int, events: openArray[Event]) =
       let extType = seq.getExtensionTypeID("TRIGGERS")
       extensions.add((extType, controlId))
       duration = max(duration, event.trigDelay + event.trigDuration)
+    of ekSoftDelay:
+      let softId = seq.registerSoftDelayEvent(event)
+      let extType = seq.getExtensionTypeID("DELAYS")
+      extensions.add((extType, softId))
+      duration = max(duration, event.sdDefaultDuration)
+
+  # Validate soft delay constraints: must be in empty blocks
+  var hasSoftDelay = false
+  for event in events:
+    if event.kind == ekSoftDelay:
+      hasSoftDelay = true
+      break
+  if hasSoftDelay:
+    var nSD = 0
+    for event in events:
+      if event.kind == ekSoftDelay: inc nSD
+    if nSD > 1:
+      raise newException(ValueError, "Only one soft delay per block is allowed.")
+    if newBlock[1] != 0 or newBlock[2] != 0 or newBlock[3] != 0 or
+       newBlock[4] != 0 or newBlock[5] != 0:
+      raise newException(ValueError,
+        "Soft delay extension can only be used in empty blocks (no RF, gradient, or ADC events).")
 
   # Add extensions (sorted by ref, built as reversed linked list)
   if extensions.len > 0:

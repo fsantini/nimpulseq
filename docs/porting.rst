@@ -29,6 +29,10 @@ Nim uses ``camelCase`` for identifiers. The mapping from PyPulseq snake_case is 
      - ``seqObj.checkTiming()``
    * - ``seq.write(path)``
      - ``seqObj.writeSeq(path)``
+   * - ``make_soft_delay(hint, ...)``
+     - ``makeSoftDelay(hint, ...)``
+   * - ``seq.apply_soft_delay(TE=..., TR=...)``
+     - ``seqObj.applySoftDelay({"TE": ..., "TR": ...}.toTable)``
 
 Type System
 -----------

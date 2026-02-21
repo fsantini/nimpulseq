@@ -115,6 +115,9 @@ proc removeDuplicates*(seq_obj: Sequence): Sequence =
     versionMajor: seq_obj.versionMajor,
     versionMinor: seq_obj.versionMinor,
     versionRevision: seq_obj.versionRevision,
+    softDelayData: seq_obj.softDelayData,
+    softDelayHints: seq_obj.softDelayHints,
+    nextFreeSoftDelayID: seq_obj.nextFreeSoftDelayID,
   )
 
   # Deep copy all library data
@@ -424,6 +427,18 @@ proc writeSeq*(seq_obj: Sequence, fileName: string, createSignature: bool = fals
       let value = data[0]
       let labelId = supportedLabels[int(data[1]) - 1]
       f.write(&"{formatInt(float64(k))} {formatInt(value)} {labelId}\n")
+    f.write("\n")
+
+  # Soft delays
+  if s.softDelayData.len > 0:
+    f.write("# Extension specification for soft delays:\n")
+    f.write("# id num offset factor hint\n")
+    f.write("# ..  ..     us     ..   ..\n")
+    let tid = s.getExtensionTypeID("DELAYS")
+    f.write(&"extension DELAYS {tid}\n")
+    for k in toSeq(s.softDelayData.keys):
+      let data = s.softDelayData[k]
+      f.write(&"{k} {data.numID} {int(round(data.offset * 1e6))} {int(data.factor)} {data.hint}\n")
     f.write("\n")
 
   # Shapes

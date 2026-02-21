@@ -11,7 +11,7 @@ type
   EventKind* = enum
     ## Discriminator tag for the `Event` variant object.
     ## Selects which branch of the object is active.
-    ekRf, ekTrap, ekGrad, ekAdc, ekDelay, ekLabelSet, ekLabelInc, ekTrigger, ekOutput
+    ekRf, ekTrap, ekGrad, ekAdc, ekDelay, ekLabelSet, ekLabelInc, ekTrigger, ekOutput, ekSoftDelay
 
   Event* = ref object
     ## A pulse sequence event. The active branch is determined by `kind`.
@@ -57,6 +57,12 @@ type
     of ekTrigger, ekOutput:
       trigChannel*: string          ## Channel name, e.g. "physio1" or "osc0".
       trigDelay*, trigDuration*: float64  ## Delay and duration of the trigger pulse (s).
+    of ekSoftDelay:
+      sdHint*: string               ## Human-readable label shown in the scanner interface (no whitespace).
+      sdNumID*: int                 ## Numeric ID; -1 means auto-assign when added to the sequence.
+      sdOffset*: float64            ## Time offset (s) added to the calculated duration.
+      sdFactor*: float64            ## Scaling factor: duration = (input / sdFactor) + sdOffset.
+      sdDefaultDuration*: float64   ## Default block duration (s) used before applySoftDelay is called.
 
   Opts* = object
     ## Scanner hardware limits and raster times used to constrain event creation.
@@ -113,6 +119,10 @@ type
     versionMajor*: int               ## Pulseq format major version (1).
     versionMinor*: int               ## Pulseq format minor version (5).
     versionRevision*: string         ## Pulseq format revision string ("0").
+    softDelayData*: OrderedTable[int, tuple[numID: int; offset: float64; factor: float64; hint: string]]
+      ## Soft delay event store: ID → (numID, offset, factor, hint).
+    softDelayHints*: Table[string, int]  ## Maps hint string → assigned numID.
+    nextFreeSoftDelayID*: int        ## Next ID to assign to a new soft delay entry.
 
 const supportedLabels* = [
   ## All label names accepted by `makeLabel`. Labels before index 10 support INC; the rest are flags.

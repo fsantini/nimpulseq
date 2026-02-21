@@ -44,6 +44,8 @@ proc computeSystemDuration(events: seq[Event], sys: Opts): float64 =
       result = max(result, event.trigDelay + event.trigDuration)
     of ekLabelSet, ekLabelInc:
       discard
+    of ekSoftDelay:
+      result = max(result, event.sdDefaultDuration)
 
 proc checkTiming*(s: Sequence): tuple[ok: bool, errors: seq[TimingError]] =
   ## Full timing check - verifies block durations, raster alignment,
@@ -231,5 +233,8 @@ proc checkTiming*(s: Sequence): tuple[ok: bool, errors: seq[TimingError]] =
 
       of ekLabelSet, ekLabelInc:
         discard # Labels have no timing constraints
+
+      of ekSoftDelay:
+        discard # Soft delays have no intrinsic timing constraints to validate
 
   result = (errors.len == 0, errors)
