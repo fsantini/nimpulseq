@@ -1,6 +1,9 @@
 import types
 
 proc calcDuration*(events: varargs[Event]): float64 =
+  ## Returns the duration of a group of simultaneously-played events (s).
+  ## The result is the maximum end time across all supplied events,
+  ## including any configured delays, dead times, and ringdown times stored on each event.
   result = 0.0
   for event in events:
     case event.kind

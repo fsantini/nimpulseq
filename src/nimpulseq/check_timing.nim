@@ -3,11 +3,12 @@ import types
 
 type
   TimingError* = object
-    blockIdx*: int
-    event*: string
-    field*: string
-    errorType*: string
-    message*: string
+    ## Describes a single timing constraint violation found by `checkTiming`.
+    blockIdx*: int     ## 1-based index of the block that contains the violation.
+    event*: string     ## Event type label, e.g. "rf", "gx", "adc", "delay".
+    field*: string     ## Specific field that violated the constraint, e.g. "delay", "duration".
+    errorType*: string ## Machine-readable error tag, e.g. "RASTER", "RF_DEAD_TIME".
+    message*: string   ## Human-readable description of the violation.
 
 proc divCheck(errors: var seq[TimingError], blockIdx: int, a: float64, b: float64,
               event: string, field: string, raster: string) =

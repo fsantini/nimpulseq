@@ -11,6 +11,15 @@ proc makeAdc*(
     freqPpm: float64 = 0.0,
     phasePpm: float64 = 0.0,
 ): Event =
+  ## Creates an ADC (analog-to-digital converter) readout event.
+  ##
+  ## Exactly one of `dwell` or `duration` must be non-zero:
+  ## - `dwell` (s): sample spacing; `duration` is computed as `dwell * numSamples`.
+  ## - `duration` (s): total readout window; `dwell` is computed as `duration / numSamples`.
+  ##
+  ## The effective delay is raised to at least `system.adcDeadTime`.
+  ## `freqOffset` (Hz) and `phaseOffset` (rad) shift the demodulation frequency/phase.
+  ## Raises `ValueError` if both or neither of `dwell`/`duration` are specified.
   if (dwell == 0.0 and duration == 0.0) or (dwell > 0.0 and duration > 0.0):
     raise newException(ValueError, "Either dwell or duration must be defined")
 

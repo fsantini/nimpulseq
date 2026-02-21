@@ -14,6 +14,19 @@ proc makeBlockPulse*(
     freqPpm: float64 = 0.0,
     phasePpm: float64 = 0.0,
 ): Event =
+  ## Creates a rectangular (block) RF pulse with constant amplitude.
+  ##
+  ## Specify the pulse length via exactly one of:
+  ## - `duration` (s): explicit pulse duration.
+  ## - `bandwidth` (Hz): frequency selectivity; duration is derived as `timeBwProduct / bandwidth`
+  ##   (or `1 / (4 * bandwidth)` when `timeBwProduct == 0`).
+  ##
+  ## - `flipAngle` (rad): desired flip angle.
+  ## - `use`: intended use string (see `supportedRfUses`).
+  ## - `freqOffset` (Hz) / `phaseOffset` (rad): demodulation offset.
+  ##
+  ## Raises `ValueError` if both or neither of `duration`/`bandwidth` are provided,
+  ## or if `use` is not in `supportedRfUses`.
   # Validate use parameter
   var validUse = false
   for u in supportedRfUses:

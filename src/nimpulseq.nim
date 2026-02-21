@@ -78,23 +78,31 @@ import nimpulseq/write_seq
 export write_seq
 
 proc setDefinition*(seq_obj: Sequence, key: string, value: seq[string]) =
+  ## Sets a sequence definition entry to a list of string values.
+  ## Definitions are written to the `[DEFINITIONS]` section of the `.seq` file.
   seq_obj.definitions[key] = value
 
 proc setDefinition*(seq_obj: Sequence, key: string, value: string) =
+  ## Sets a sequence definition entry to a single string value.
   seq_obj.definitions[key] = @[value]
 
 proc setDefinition*(seq_obj: Sequence, key: string, value: seq[float64]) =
+  ## Sets a sequence definition entry from a list of floats,
+  ## formatted with 9 significant digits using `{:g}`-style notation.
   var strs: seq[string] = @[]
   for v in value:
     strs.add(formatG(v, 9))
   seq_obj.definitions[key] = strs
 
 proc totalDuration*(seq_obj: Sequence): float64 =
+  ## Returns the total duration of all blocks in the sequence (s).
   result = 0.0
   for _, d in seq_obj.blockDurations:
     result += d
 
 proc newSequence*(system: Opts = defaultOpts()): Sequence =
+  ## Creates a new, empty `Sequence` object configured for the given scanner limits.
+  ## Initialises all event libraries and writes the standard raster-time definitions.
   result = Sequence(
     adcLibrary: newEventLibrary(),
     delayLibrary: newEventLibrary(),

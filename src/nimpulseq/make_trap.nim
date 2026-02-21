@@ -37,6 +37,17 @@ proc makeTrapezoid*(
     riseTime: float64 = NaN,
     system: Opts = defaultOpts(),
 ): Event =
+  ## Creates a trapezoidal gradient event on the specified channel ("x", "y", or "z").
+  ##
+  ## Exactly one of `area`, `flatArea`, or `amplitude` must be provided; the others must be NaN.
+  ## The shortest possible gradient waveform is computed automatically from the system limits
+  ## unless explicit timing parameters (`duration`, `riseTime`, `fallTime`, `flatTime`) are given.
+  ##
+  ## - `area` (Hz/m·s): total gradient area including ramps.
+  ## - `flatArea` (Hz/m·s): area of the flat top only; requires `flatTime`.
+  ## - `amplitude` (Hz/m): peak amplitude; requires `duration` or `flatTime`.
+  ## - `maxGrad`/`maxSlew`: override system limits for this event only.
+  ## Raises `ValueError` on invalid parameter combinations or constraint violations.
   let ch = parseChannel(channel)
   let mg = if maxGrad > 0: maxGrad else: system.maxGrad
   let ms = if maxSlew > 0: maxSlew else: system.maxSlew

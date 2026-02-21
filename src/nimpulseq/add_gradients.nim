@@ -4,11 +4,15 @@ import make_trap
 import make_extended_trapezoid
 
 proc cumsum4*(a, b, c, d: float64): tuple[s0, s1, s2, s3: float64] =
+  ## Returns the four cumulative sums of `a`, `b`, `c`, `d`:
+  ## `(a, a+b, a+b+c, a+b+c+d)`. Used to build trapezoid time-point arrays.
   let s1 = a + b
   let s2 = s1 + c
   (a, s1, s2, s2 + d)
 
 proc cumsum3*(a, b, c: float64): tuple[s0, s1, s2: float64] =
+  ## Returns the three cumulative sums of `a`, `b`, `c`:
+  ## `(a, a+b, a+b+c)`. Used to build triangle-trapezoid time-point arrays.
   let s1 = a + b
   (a, s1, s1 + c)
 

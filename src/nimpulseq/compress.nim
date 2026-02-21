@@ -2,8 +2,10 @@ import std/math
 
 type
   CompressedShape* = object
-    numSamples*: int
-    data*: seq[float64]
+    ## Holds a waveform shape in run-length-encoded derivative form.
+    ## If `data.len == numSamples` the shape is stored uncompressed.
+    numSamples*: int       ## Original number of samples before compression.
+    data*: seq[float64]    ## Compressed (or raw) sample data.
 
 proc compressShape*(decompressedShape: seq[float64], forceCompression: bool = false): CompressedShape =
   ## Compress a gradient or pulse shape using run-length encoding on the derivative.

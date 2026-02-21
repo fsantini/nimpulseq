@@ -204,6 +204,12 @@ proc removeDuplicates*(seq_obj: Sequence): Sequence =
 # writeSeq
 # =============================================================================
 proc writeSeq*(seq_obj: Sequence, fileName: string, createSignature: bool = false, doRemoveDuplicates: bool = true, preamble: string = "") =
+  ## Serializes the sequence to a Pulseq v1.5.0 `.seq` file at `fileName`
+  ## (the `.seq` extension is appended automatically if absent).
+  ##
+  ## - `createSignature`: if true, appends an MD5 `[SIGNATURE]` section after writing.
+  ## - `doRemoveDuplicates`: if true (default), deduplicates all event libraries before writing.
+  ## - `preamble`: optional text inserted as comments near the top of the file.
   var fn = fileName
   if not fn.endsWith(".seq"):
     fn = fn & ".seq"

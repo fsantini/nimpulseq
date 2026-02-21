@@ -42,6 +42,21 @@ proc makeAdiabaticPulse*(
     freqPpm: float64 = 0.0,
     phasePpm: float64 = 0.0,
 ): tuple[rf: Event, gz: Event, gzr: Event] =
+  ## Creates an adiabatic RF pulse with simultaneous amplitude and frequency modulation.
+  ##
+  ## - `pulseType`: waveform type; either `"hypsec"` (hyperbolic secant) or `"wurst"`.
+  ## - `adiabaticity`: adiabaticity factor K (higher = more adiabatic, stronger B1).
+  ## - `duration` (s): pulse duration (default 10 ms).
+  ## - `bandwidth` (Hz): sweep bandwidth (used directly for "wurst"; derived for "hypsec").
+  ## - `beta`: frequency modulation rate parameter for "hypsec".
+  ## - `mu`: dimensionless parameter controlling the phase modulation slope for "hypsec".
+  ## - `nFac`: amplitude shaping exponent for "wurst".
+  ## - `returnGz`: if true, also returns slice-selection (`gz`) and rephasing (`gzr`) trapezoids.
+  ##   Requires `sliceThickness` > 0.
+  ## - `use`: intended use string (see `supportedRfUses`); default "inversion".
+  ##
+  ## Returns `(rf, gz, gzr)`; `gz` and `gzr` are `nil` when `returnGz = false`.
+  ## Raises `ValueError` for unsupported `pulseType` or `use`.
   var sys = system
   if use notin supportedRfUses:
     raise newException(ValueError, "Invalid use parameter.")

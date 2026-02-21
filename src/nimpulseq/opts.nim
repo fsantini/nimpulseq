@@ -35,6 +35,10 @@ proc newOpts*(
     adcSamplesLimit: int = -1,
     adcSamplesDivisor: int = -1,
 ): Opts =
+  ## Creates an `Opts` scanner limits object with user-supplied values.
+  ## Parameters not provided (or given a negative sentinel) fall back to `defaultOpts()`.
+  ## `gradUnit` accepts "Hz/m" or "mT/m"; `slewUnit` accepts "Hz/m/s", "T/m/s", or "mT/m/ms".
+  ## If `riseTime` > 0, it overrides `maxSlew` to enforce a fixed ramp time.
   let defaults = defaultOpts()
   let g = if gamma < 0: defaults.gamma else: gamma
 

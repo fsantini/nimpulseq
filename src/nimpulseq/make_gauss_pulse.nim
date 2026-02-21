@@ -25,6 +25,20 @@ proc makeGaussPulse*(
     freqPpm: float64 = 0.0,
     phasePpm: float64 = 0.0,
 ): tuple[rf: Event, gz: Event, gzr: Event] =
+  ## Creates a Gaussian-shaped RF pulse, optionally apodized by a Hanning window.
+  ##
+  ## - `flipAngle` (rad): desired flip angle.
+  ## - `apodization`: Hanning window weight in [0, 1]; 0 = pure Gaussian.
+  ## - `bandwidth` (Hz): pulse bandwidth; if 0, derived from `timeBwProduct / duration`.
+  ## - `duration` (s): pulse duration (default 4 ms).
+  ## - `centerPos`: normalized center position in [0, 1]; default 0.5.
+  ## - `dwell` (s): RF sample spacing; defaults to `system.rfRasterTime`.
+  ## - `returnGz`: if true, also returns slice-selection (`gz`) and rephasing (`gzr`) trapezoids.
+  ##   Requires `sliceThickness` > 0 when enabled.
+  ## - `use`: intended use string (see `supportedRfUses`).
+  ##
+  ## Returns `(rf, gz, gzr)`; `gz` and `gzr` are `nil` when `returnGz = false`.
+  ## Raises `ValueError` for unsupported `use` strings or missing `sliceThickness`.
   # Validate use parameter
   var validUse = false
   for u in supportedRfUses:

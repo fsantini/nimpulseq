@@ -4,6 +4,10 @@ import calc_duration
 
 type
   AlignSpec* = enum
+    ## Alignment mode for `alignEvents`.
+    ## `asLeft`: remove delay (align to block start).
+    ## `asCenter`: center event within the longest peer.
+    ## `asRight`: push event to end of the longest peer.
     asLeft, asCenter, asRight
 
 proc alignEvents*(spec: AlignSpec, events: seq[Event]): seq[Event] =

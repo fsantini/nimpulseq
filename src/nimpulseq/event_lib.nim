@@ -2,12 +2,18 @@ import std/[tables, math, algorithm]
 import types
 
 proc find*(lib: EventLibrary, newData: seq[float64]): tuple[keyId: int, found: bool] =
+  ## Looks up `newData` in the library without inserting it.
+  ## Returns the existing ID and `found = true` if it exists,
+  ## or the next free ID and `found = false` if it does not.
   if newData in lib.keymap:
     result = (lib.keymap[newData], true)
   else:
     result = (lib.nextFreeID, false)
 
 proc findOrInsert*(lib: EventLibrary, newData: seq[float64], dataType: char = '\0'): tuple[keyId: int, found: bool] =
+  ## Looks up `newData`; if not present, inserts it and assigns a new ID.
+  ## Returns the ID and `found = true` if it already existed, `found = false` if freshly inserted.
+  ## `dataType` is an optional single-character tag stored alongside the entry (e.g. 't', 'g').
   if newData in lib.keymap:
     result = (lib.keymap[newData], true)
   else:
@@ -20,6 +26,8 @@ proc findOrInsert*(lib: EventLibrary, newData: seq[float64], dataType: char = '\
     result = (keyId, false)
 
 proc insert*(lib: EventLibrary, keyId: int, newData: seq[float64], dataType: char = '\0'): int =
+  ## Inserts `newData` at `keyId` (or the next free ID if `keyId == 0`), overwriting any previous entry.
+  ## Updates the reverse keymap and advances `nextFreeID` if necessary. Returns the used ID.
   var kid = keyId
   if kid == 0:
     kid = lib.nextFreeID
@@ -35,6 +43,8 @@ proc insert*(lib: EventLibrary, keyId: int, newData: seq[float64], dataType: cha
   return kid
 
 proc get*(lib: EventLibrary, keyId: int): tuple[data: seq[float64], dataType: char] =
+  ## Retrieves the data and type tag stored under `keyId`.
+  ## The type tag is `'\0'` if none was set.
   (lib.data[keyId], lib.dataType.getOrDefault(keyId, '\0'))
 
 proc roundData(data: seq[float64], digits: seq[int]): seq[float64] =

@@ -4,6 +4,10 @@ import event_lib
 import compress
 
 proc registerRfEvent*(seq: Sequence, event: Event): tuple[rfId: int, shapeIDs: seq[int]] =
+  ## Compresses the RF waveform (magnitude + phase shapes) and stores it in
+  ## the sequence's `rfLibrary` and `shapeLibrary`, deduplicating automatically.
+  ## Returns the assigned RF library ID and a 3-element seq of shape IDs
+  ## `[magShapeId, phaseShapeId, timeShapeId]`.
   var mag = newSeq[float64](event.rfSignal.len)
   var amplitude = 0.0
   for i in 0 ..< event.rfSignal.len:
@@ -89,6 +93,9 @@ proc registerRfEvent*(seq: Sequence, event: Event): tuple[rfId: int, shapeIDs: s
   result = (rfId, shapeIDs)
 
 proc registerGradEvent*(seq: Sequence, event: Event): int =
+  ## Stores a trapezoid (`ekTrap`) or arbitrary gradient (`ekGrad`) event in
+  ## the sequence's `gradLibrary`, deduplicating automatically.
+  ## Returns the assigned gradient library ID.
   if event.kind == ekTrap:
     let data = @[
       event.trapAmplitude,
@@ -185,6 +192,8 @@ proc registerGradEvent*(seq: Sequence, event: Event): int =
     raise newException(ValueError, "Unsupported gradient type")
 
 proc registerAdcEvent*(seq: Sequence, event: Event): tuple[adcId: int, shapeId: int] =
+  ## Stores an ADC event in the sequence's `adcLibrary`, deduplicating automatically.
+  ## Returns the assigned ADC library ID and the phase modulation shape ID (currently always 0).
   let shapeId = 0 # No phase modulation support for now
   let data = @[
     float64(event.adcNumSamples),
@@ -201,6 +210,8 @@ proc registerAdcEvent*(seq: Sequence, event: Event): tuple[adcId: int, shapeId: 
   result = (adcId, shapeId)
 
 proc registerLabelEvent*(seq: Sequence, event: Event): int =
+  ## Stores a LABELSET or LABELINC event in the appropriate label library.
+  ## Returns the assigned label library ID.
   var labelIdx = -1
   for i, sl in supportedLabels:
     if sl == event.labelName:
@@ -216,6 +227,9 @@ proc registerLabelEvent*(seq: Sequence, event: Event): int =
     return id
 
 proc registerControlEvent*(seq: Sequence, event: Event): int =
+  ## Stores a trigger (`ekTrigger`) or digital output (`ekOutput`) event in `triggerLibrary`.
+  ## Returns the assigned trigger library ID.
+  ## Raises `ValueError` for unsupported channel names.
   var eventType: int
   var eventChannel: int
   if event.kind == ekOutput:
@@ -239,6 +253,9 @@ proc registerControlEvent*(seq: Sequence, event: Event): int =
   return controlId
 
 proc getExtensionTypeID*(seq: Sequence, extensionString: string): int =
+  ## Returns the numeric type ID assigned to the extension named `extensionString`
+  ## (e.g. "TRIGGERS", "LABELSET", "LABELINC").
+  ## If the name has not been seen before, a new ID is allocated and registered.
   for i, s in seq.extensionStringIdx:
     if s == extensionString:
       return seq.extensionNumericIdx[i]
@@ -254,6 +271,10 @@ proc getExtensionTypeID*(seq: Sequence, extensionString: string): int =
   return extensionId
 
 proc setBlock*(seq: Sequence, blockIndex: int, events: openArray[Event]) =
+  ## Registers a group of simultaneous events as block `blockIndex`.
+  ## All events are stored in the appropriate event libraries (deduplicating),
+  ## the block duration is computed, and gradient-endpoint continuity is verified.
+  ## Raises `ValueError` if gradient continuity is violated across consecutive blocks.
   # Gradient continuity check
   var currFirst: array[3, float64] = [0.0, 0.0, 0.0]
   var currLast: array[3, float64] = [0.0, 0.0, 0.0]
@@ -365,6 +386,9 @@ proc setBlock*(seq: Sequence, blockIndex: int, events: openArray[Event]) =
   seq.blockEventObjects[blockIndex] = eventList
 
 proc addBlock*(seq: Sequence, events: varargs[Event]) =
+  ## Appends a new block containing the given events to the sequence.
+  ## Events passed as `varargs` execute simultaneously.
+  ## Automatically advances the internal block ID counter.
   var eventList: seq[Event] = @[]
   for e in events:
     eventList.add(e)
@@ -372,5 +396,8 @@ proc addBlock*(seq: Sequence, events: varargs[Event]) =
   seq.nextFreeBlockID += 1
 
 proc addBlock*(seq: Sequence, events: seq[Event]) =
+  ## Appends a new block containing the given events to the sequence.
+  ## Events in the `seq` execute simultaneously.
+  ## Automatically advances the internal block ID counter.
   seq.setBlock(seq.nextFreeBlockID, events)
   seq.nextFreeBlockID += 1

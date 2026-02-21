@@ -28,6 +28,19 @@ proc makeSincPulse*(
     freqPpm: float64 = 0.0,
     phasePpm: float64 = 0.0,
 ): tuple[rf: Event, gz: Event, gzr: Event] =
+  ## Creates a Hanning-apodized sinc RF pulse.
+  ##
+  ## - `flipAngle` (rad): desired flip angle.
+  ## - `apodization`: Hanning window weight in [0, 1]; 0 = pure sinc.
+  ## - `duration` (s): total pulse duration (default 4 ms).
+  ## - `timeBwProduct`: time-bandwidth product controlling the number of zero crossings.
+  ## - `centerPos`: normalized position of the pulse center in [0, 1]; default 0.5 (symmetric).
+  ## - `dwell` (s): RF sample spacing; defaults to `system.rfRasterTime`.
+  ## - `returnGz`: if true, also returns slice-selection (`gz`) and rephasing (`gzr`) trapezoids.
+  ##   Requires `sliceThickness` > 0 when enabled.
+  ## - `use`: intended use string (see `supportedRfUses`).
+  ##
+  ## Returns `(rf, gz, gzr)`; `gz` and `gzr` are `nil` when `returnGz = false`.
   var sys = system
   var dw = dwell
   if dw == 0.0:
