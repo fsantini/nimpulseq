@@ -1,0 +1,5 @@
+# Documentation build artefacts
+docs/.venv/
+docs/_build/
+docs/_nim_json/
+docs/api/
