@@ -129,10 +129,10 @@ proc writeEpiLabelSeq*(): Sequence =
     echo "Timing check failed! Error listing follows:"
     echo errorReport
 
+  seqObj.setDefinition("FOV", @[fov, fov, sliceThickness * float64(nSlices)])
+  seqObj.setDefinition("Name", "epi_lbl")
   result = seqObj
 
 when isMainModule:
   let seqObj = writeEpiLabelSeq()
-  seqObj.setDefinition("FOV", @[220e-3, 220e-3, 3e-3 * 7.0])
-  seqObj.setDefinition("Name", "epi_lbl")
   seqObj.writeSeq("examples/epi_label_nim.seq", createSignature = true)

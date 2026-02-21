@@ -47,10 +47,12 @@ proc computeSystemDuration(events: seq[Event], sys: Opts): float64 =
     of ekSoftDelay:
       result = max(result, event.sdDefaultDuration)
 
-proc checkTiming*(s: Sequence): tuple[ok: bool, errors: seq[TimingError]] =
+proc checkTiming*(s: Sequence, maxErrors: int = -1): tuple[ok: bool, errors: seq[TimingError]] =
   ## Full timing check - verifies block durations, raster alignment,
   ## dead times, ringdown times, and delay signs.
   ## Matches Python ext_check_timing behavior.
+  ##
+  ## `maxErrors` limits the number of errors returned. -1 means all errors.
   var errors: seq[TimingError] = @[]
 
   for blockIdx in s.blockEvents.keys:
@@ -237,4 +239,7 @@ proc checkTiming*(s: Sequence): tuple[ok: bool, errors: seq[TimingError]] =
       of ekSoftDelay:
         discard # Soft delays have no intrinsic timing constraints to validate
 
-  result = (errors.len == 0, errors)
+  let ok = errors.len == 0
+  if maxErrors >= 0 and errors.len > maxErrors:
+    errors = errors[0 ..< maxErrors]
+  result = (ok, errors)

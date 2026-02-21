@@ -90,6 +90,8 @@ proc writeEpiSeSeq*(): Sequence =
     echo "Timing check failed! Error listing follows:"
     echo errorReport
 
+  seqObj.setDefinition("FOV", @[fov, fov, 3e-3])
+  seqObj.setDefinition("Name", "epi_se")
   result = seqObj
 
 when isMainModule:

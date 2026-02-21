@@ -92,10 +92,10 @@ proc writeRadialGreSeq*(): Sequence =
     echo "Timing check failed! Error listing follows:"
     echo errorReport
 
+  seqObj.setDefinition("FOV", @[fov, fov, sliceThickness])
+  seqObj.setDefinition("Name", "gre_rad")
   result = seqObj
 
 when isMainModule:
   let seqObj = writeRadialGreSeq()
-  seqObj.setDefinition("FOV", @[260e-3, 260e-3, 3e-3])
-  seqObj.setDefinition("Name", "gre_rad")
   seqObj.writeSeq("examples/radial_gre_nim.seq", createSignature = true)

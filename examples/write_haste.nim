@@ -277,6 +277,8 @@ proc writeHasteSeq*(): Sequence =
     echo "Timing check failed. Error listing follows:"
     echo errorReport
 
+  seqObj.setDefinition("FOV", @[fov, fov, sliceThickness * float64(nSlices)])
+  seqObj.setDefinition("Name", "haste")
   result = seqObj
 
 when isMainModule:

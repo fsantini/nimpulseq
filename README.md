@@ -6,7 +6,7 @@ A Nim port of [PyPulseq](https://github.com/imr-framework/pypulseq) for vendor-n
 
 NimPulseq is a direct, API-compatible port of PyPulseq to the Nim programming language. It implements the complete sequence generation pipeline — event creation, block assembly, timing validation, and `.seq` file writing — producing output that is byte-identical to PyPulseq for all included example sequences.
 
-The library consists of 27 source modules and ships with 11 example pulse sequences and a comprehensive test suite of 1052 automated tests.
+The library consists of 27 source modules and ships with 12 example pulse sequences and a comprehensive test suite of 1052 automated tests.
 
 ## Getting Started
 
@@ -66,7 +66,7 @@ seqObj.writeSeq("my_sequence.seq", createSignature = true)
 
 ## Example Sequences
 
-The `examples/` directory contains 11 complete pulse sequence implementations, all ported from PyPulseq:
+The `examples/` directory contains 12 complete pulse sequence implementations, all ported from PyPulseq:
 
 | Example | Description |
 |---------|-------------|
@@ -81,6 +81,7 @@ The `examples/` directory contains 11 complete pulse sequence implementations, a
 | `write_mprage.nim` | Magnetization-prepared rapid gradient echo |
 | `write_radial_gre.nim` | Radial GRE |
 | `write_ute.nim` | Ultrashort echo time |
+| `write_gre_label_softdelay.nim` | GRE with labels and soft delays |
 
 Run any example with:
 
@@ -116,6 +117,7 @@ Events within the same `addBlock()` call execute simultaneously. The `Sequence` 
 | `makeLabel` | ADC label (SET/INC) |
 | `makeTrigger` | Synchronization trigger |
 | `makeDigitalOutputPulse` | Digital output pulse |
+| `makeSoftDelay` | Soft delay (runtime-adjustable block duration) |
 
 ### Gradient Operations
 
@@ -137,6 +139,7 @@ Events within the same `addBlock()` call execute simultaneously. The `Sequence` 
 | `setDefinition` | Set sequence header definitions |
 | `registerGradEvent` | Pre-register gradient for ID ordering |
 | `totalDuration` | Total sequence duration |
+| `applySoftDelay` | Apply runtime delay values to soft delay blocks |
 
 For complete API documentation, see [API.md](API.md). For a guide on converting PyPulseq scripts to NimPulseq, see [PORTING_GUIDE.md](PORTING_GUIDE.md).
 
@@ -160,8 +163,8 @@ bash tests/run_tests.sh
 | test_scale_grad | 17 | Gradient scaling with limit checks |
 | test_block | 11 | Block assembly and gradient continuity |
 | test_check_timing | 1 | Timing validation |
-| test_sequence | 22 | End-to-end `.seq` file comparison against PyPulseq |
-| **Total** | **1052** | |
+| test_sequence | 24 | End-to-end `.seq` file comparison against PyPulseq |
+| **Total** | **1054** | |
 
 The `test_sequence` tests generate `.seq` files and compare them line-by-line against reference output produced by PyPulseq.
 
@@ -170,7 +173,7 @@ The `test_sequence` tests generate `.seq` files and compare them line-by-line ag
 ```
 nimpulseq/
   src/           # 27 library modules
-  examples/      # 11 example pulse sequences
+  examples/      # 12 example pulse sequences + STYLE_GUIDE.md
   tests/         # 10 test files + runner script
 API.md           # Complete API reference
 PORTING_GUIDE.md # PyPulseq-to-NimPulseq conversion guide
@@ -200,4 +203,4 @@ NimPulseq is released under the [MIT License](LICENSE).
 
 ## Details
 
-The current version is based on [commit 36d9fa3 of PyPulseq](https://github.com/imr-framework/pypulseq/commit/36d9fa3a9d84321ec3653efcb0b902c5d51d4c86) 2026-02-02
+The current version is based on [commit 75f2c27 of PyPulseq](https://github.com/imr-framework/pypulseq/commit/75f2c27) 2026-02-21

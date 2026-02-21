@@ -165,6 +165,8 @@ proc writeMprageSeq*(): Sequence =
       seqObj.addBlock(adc, gro1, scaleGrad(grad = gpe1, scale = pe1Steps[i]), gpe2je)
     seqObj.addBlock(groSp, makeDelay(trOutDelay), labelResetPar, labelIncLin)
 
+  seqObj.setDefinition("FOV", @[fov[0], fov[1], fov[2]])
+  seqObj.setDefinition("Name", "mprage")
   result = seqObj
 
 when isMainModule:

@@ -47,6 +47,7 @@ proc writeGreLabelSoftdelaySeq*(): Sequence =
     system = system,
     returnGz = true,
     delay = system.rfDeadTime,
+    use = "excitation",
   )
 
   let deltaK = 1.0 / fov
@@ -131,10 +132,10 @@ proc writeGreLabelSoftdelaySeq*(): Sequence =
     for e in errorReport:
       echo e
 
+  seqObj.setDefinition("FOV", @[fov, fov, sliceThickness * float64(nSlices)])
+  seqObj.setDefinition("Name", "gre_label_softdelay")
   result = seqObj
 
 when isMainModule:
   let seqObj = writeGreLabelSoftdelaySeq()
-  seqObj.setDefinition("FOV", @[224e-3, 224e-3, 3e-3])
-  seqObj.setDefinition("Name", "gre_label")
   seqObj.writeSeq("examples/gre_label_softdelay_nim.seq", createSignature = true)

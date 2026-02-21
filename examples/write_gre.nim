@@ -100,10 +100,10 @@ proc writeGreSeq*(): Sequence =
     for e in errorReport:
       echo e
 
+  seqObj.setDefinition("FOV", @[256e-3, 256e-3, 3e-3])
+  seqObj.setDefinition("Name", "gre")
   result = seqObj
 
 when isMainModule:
   let seqObj = writeGreSeq()
-  seqObj.setDefinition("FOV", @[256e-3, 256e-3, 3e-3])
-  seqObj.setDefinition("Name", "gre")
   seqObj.writeSeq("gre_nim.seq", createSignature = true)

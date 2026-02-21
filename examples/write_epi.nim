@@ -82,6 +82,8 @@ proc writeEpiSeq*(): Sequence =
     for e in errorReport:
       echo e
 
+  seqObj.setDefinition("FOV", @[fov, fov, sliceThickness * float64(nSlices)])
+  seqObj.setDefinition("Name", "epi")
   result = seqObj
 
 when isMainModule:

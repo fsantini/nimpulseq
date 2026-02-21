@@ -112,10 +112,10 @@ proc writeGreLabelSeq*(): Sequence =
     for e in errorReport:
       echo e
 
+  seqObj.setDefinition("FOV", @[224e-3, 224e-3, 3e-3])
+  seqObj.setDefinition("Name", "gre_label")
   result = seqObj
 
 when isMainModule:
   let seqObj = writeGreLabelSeq()
-  seqObj.setDefinition("FOV", @[224e-3, 224e-3, 3e-3])
-  seqObj.setDefinition("Name", "gre_label")
   seqObj.writeSeq("examples/gre_label_nim.seq", createSignature = true)

@@ -291,6 +291,8 @@ proc writeTseSeq*(): Sequence =
     echo "Timing check failed. Error listing follows:"
     echo errorReport
 
+  seqObj.setDefinition("FOV", @[fov, fov, sliceThickness * float64(nSlices)])
+  seqObj.setDefinition("Name", "tse")
   result = seqObj
 
 when isMainModule:
