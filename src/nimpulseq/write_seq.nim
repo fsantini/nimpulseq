@@ -1,4 +1,5 @@
-import std/[tables, strutils, strformat, math, algorithm, os, md5, sequtils]
+import std/[tables, strutils, strformat, math, algorithm, sequtils]
+import checksums/md5
 import types
 import event_lib
 import blocks

@@ -1,6 +1,5 @@
 import std/[math, complex]
 import types
-import calc_rf_center
 
 proc makeBlockPulse*(
     flipAngle: float64,

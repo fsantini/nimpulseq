@@ -1,6 +1,5 @@
 import std/[math, algorithm]
 import types
-import calc_duration
 import make_trap
 import make_extended_trapezoid
 
