@@ -12,7 +12,7 @@ The library consists of 27 source modules and ships with 12 example pulse sequen
 
 ### Requirements
 
-- [Nim](https://nim-lang.org/) >= 1.6
+- [Nim](https://nim-lang.org/) >= 2.0
 
 ### Compilation
 
