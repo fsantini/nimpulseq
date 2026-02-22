@@ -1,5 +1,5 @@
 project = "NimPulseq"
-copyright = "2024, NimPulseq Contributors"
+copyright = "2026, NimPulseq Contributors"
 author = "NimPulseq Contributors"
 release = "0.1.0"
 
