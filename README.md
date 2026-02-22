@@ -191,6 +191,8 @@ NimPulseq implements the complete **sequence generation** pipeline. The followin
 
 For a detailed implementation status, see the [Porting Guide](PORTING_GUIDE.md#7-implementation-status).
 
+A compiled sequence with nimpulseq is significantly faster than its pypulseq (interpreted equivalent). On the same machine, the write_gre example takes 13ms with Nim, and 700ms with Python.
+
 ## Citation
 
 If you use NimPulseq in your research, please cite the original PyPulseq paper:
