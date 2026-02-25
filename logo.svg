@@ -26,8 +26,8 @@
      showgrid="false"
      showguides="true"
      inkscape:zoom="1.0053638"
-     inkscape:cx="480.42311"
-     inkscape:cy="295.91278"
+     inkscape:cx="308.34609"
+     inkscape:cy="296.90745"
      inkscape:window-width="1920"
      inkscape:window-height="1052"
      inkscape:window-x="1920"
@@ -40,7 +40,10 @@
      id="layer1"
      transform="translate(-45.918619,-52.778599)"><g
        id="g2269"
-       transform="translate(6.3161216,-43.579408)"><path
+       transform="translate(6.3161216,-43.579408)"
+       inkscape:export-filename="logo.png"
+       inkscape:export-xdpi="150"
+       inkscape:export-ydpi="150"><path
          style="fill:#ffe953;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
          d="m 45.111792,111.95618 2.773721,-5.48062 h 8.022162 l 2.769203,5.50145 z"
          id="path758"

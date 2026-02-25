@@ -1,3 +1,7 @@
+![nimpulseq](logo.png)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 # NimPulseq
 
 A Nim port of [PyPulseq](https://github.com/imr-framework/pypulseq) for vendor-neutral MRI pulse sequence design. NimPulseq generates `.seq` files in the [Pulseq](https://pulseq.github.io/) v1.5.0 format, compatible with **Siemens**, **GE**, **Bruker**, and **Philips** MRI scanners.
